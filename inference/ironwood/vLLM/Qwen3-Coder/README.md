@@ -1,7 +1,7 @@
 # Serve Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic with vLLM on Ironwood TPU
 
 In this guide, we show how to serve
-[Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic](https://huggingface.co/BCCard/Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic) on Ironwood (TPU7x).
+[Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic](https://huggingface.co/Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8) on Ironwood (TPU7x).
 
 ## Install `gcloud cli`
 
@@ -310,7 +310,7 @@ create a node pool with a single TPU v7 node in 2x2x1 configuration.
 
     ```bash
     curl http://localhost:8000/v1/completions -H "Content-Type: application/json" -d '{
-        "model": "BCCard/Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic",
+        "model": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
         "prompt": "San Francisco is a",
         "max_tokens": 7,
         "temperature": 0
@@ -452,7 +452,7 @@ post:[Scaling high-performance inference cost-effectively](https://cloud.google.
     curl -X POST http://${GW_IP}/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
-      "model": "BCCard/Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic",
+      "model": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
       "prompt": "What is Qwen3-Coder 480B?",
       "max_tokens": 50
     }'
@@ -475,7 +475,7 @@ post:[Scaling high-performance inference cost-effectively](https://cloud.google.
       terminationGracePeriodSeconds: 60
       containers:
       - name: vllm-bench
-        image: vllm/vllm-tpu:v0.13.2-ironwood
+        image: vllm/vllm-tpu:nightly-ironwood-20260113-8424c78-df7e127
         command: ["vllm"]
         args:
         - bench
@@ -487,7 +487,7 @@ post:[Scaling high-performance inference cost-effectively](https://cloud.google.
         - --ignore-eos
         - --host=vllm-service
         - --port=8000
-        - --model=BCCard/Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic
+        - --model=Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8
         env:
         - name: HUGGING_FACE_HUB_TOKEN
           valueFrom:
