@@ -212,7 +212,7 @@ create a node pool with a single TPU v7 node in 2x2x1 configuration.
             cloud.google.com/gke-tpu-topology: 2x2x1
           containers:
           - name: vllm-tpu
-            image: vllm/vllm-tpu:v0.13.2-ironwood
+            image: vllm/vllm-tpu:nightly-ironwood-20260113-8424c78-df7e127
             command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
             args:
             - --host=0.0.0.0
@@ -225,7 +225,7 @@ create a node pool with a single TPU v7 node in 2x2x1 configuration.
             - --max-num-batched-tokens=1028
             - --max-num-seqs=128
             - --no-enable-prefix-caching
-            - --model=BCCard/Qwen3-Coder-480B-A35B-Instruct-FP8-Dynamic
+            - --model=Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8
             - --kv-cache-dtype=fp8
             - --async-scheduling
             - --gpu-memory-utilization=0.93
