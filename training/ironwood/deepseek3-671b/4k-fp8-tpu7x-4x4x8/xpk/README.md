@@ -1,6 +1,6 @@
-# Pretrain deepseek3-671b workload on Ironwood GKE clusters with XPK
+# Pretrain deepseek-v3 workload on Ironwood GKE clusters with XPK
 
-This recipe outlines the steps for running a deepseek3-671b
+This recipe outlines the steps for running a deepseek-v3
 [MaxText](https://github.com/AI-Hypercomputer/maxtext) pretraining workload on
 [Ironwood GKE clusters](https://cloud.google.com/kubernetes-engine) by using
 [XPK](https://github.com/AI-Hypercomputer/xpk).
@@ -35,12 +35,13 @@ To run this recipe, you need the following:
     in the [Install XPK and dependencies](#install-xpk-and-dependencies) section
     to install Docker.
 -   **Python 3.11 Virtual Environment:** A Python
-    3.11 virtual environment is required. Instructions for
-    setting this up are also in the
+    3.11 virtual environment is required. Instructions
+    for setting this up are also in the
     [Install XPK and dependencies](#install-xpk-and-dependencies) section.
 -   **XPK and Dependencies:** Follow the steps in the
     [Install XPK and dependencies](#install-xpk-and-dependencies) section to
     install XPK, `kubectl`, `kubectl-kueue`, and `kubectl-kjob`.
+
 
 ## Install XPK and dependencies
 
@@ -57,11 +58,11 @@ curl -LsSf https://astral.sh/uv/install.sh -o install-uv.sh
 chmod +x install-uv.sh
 ./install-uv.sh
 rm install-uv.sh
-source ~/.local/bin/env
+source ${HOME}/.local/bin/env
 
 # Set up and Activate Python 3.11 virtual environment
-uv venv --seed ~/.local/bin/venv --python 3.11 --clear
-source ~/.local/bin/venv/bin/activate
+uv venv --seed ${HOME}/.local/bin/venv --python 3.11 --clear
+source ${HOME}/.local/bin/venv/bin/activate
 pip install --upgrade pip
 ```
 
@@ -81,9 +82,9 @@ Install XPK and necessary tools:
 pip install xpk==0.16.1
 
 # Install xpk pre-reqs kubectl-kueue and kjob (if you installed xpk via pip)
-curl -LsSf https://raw.githubusercontent.com/AI-Hypercomputer/xpk/refs/tags/v0.16.0/tools/install-xpk.sh -o install-xpk.sh
+curl -LsSf https://raw.githubusercontent.com/AI-Hypercomputer/xpk/refs/tags/v0.16.1/tools/install-xpk.sh -o install-xpk.sh
 chmod +x install-xpk.sh
-./install-xpk.sh
+sudo ./install-xpk.sh
 rm install-xpk.sh
 
 # Follow https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#install_plugin to install gke-gcloud-auth-plugin
@@ -110,7 +111,7 @@ For this recipe, the following setup is used:
 -   **Pretraining job configuration and deployment** - XPK is used to configure
     and deploy the
     [Kubernetes Jobset](https://kubernetes.io/blog/2025/03/23/introducing-jobset)
-    resource, which manages the execution of the MaxText pretraining workload.
+    resource, which manages the execution of the deepseek-v3 workload.
 
 ## Test environment
 
@@ -132,12 +133,13 @@ across all commands and configurations.
 -   `PROJECT_ID`: Your GCP project name.
 -   `CLUSTER_NAME`: The target cluster name.
 -   `ZONE`: The zone for your cluster (e.g., `us-central1-c`).
+-   `CONTAINER_REGISTRY`: The container registry to use (e.g., `gcr.io`).
 -   `BASE_OUTPUT_DIR`: Output directory for model training (e.g.,
     `"gs://<your_gcs_bucket>"`).
--   `CONTAINER_REGISTRY`: The container registry to use (e.g., gcr.io).
 -   `WORKLOAD_IMAGE`: The Docker image for the workload. This is set in
-    `run_recipe.sh` to `${CONTAINER_REGISTRY}/${PROJECT_ID}/${USER}-maxtext-runner` by default,
-    matching the image built in the
+    `run_recipe.sh` to
+    `${CONTAINER_REGISTRY}/${PROJECT_ID}/${USER}-deepseek-v3-runner` by
+    default, matching the image built in the
     [Docker container image](#docker-container-image) section.
 -   `WORKLOAD_NAME`: A unique name for your workload. This is set in
     `run_recipe.sh` using the following command:
@@ -149,7 +151,7 @@ across all commands and configurations.
     within the same project. For a shared project, use
     `"projects/<project_number>/reservations/<reservation_name>"`.
 
-If you don’t have a GCS bucket, create one with this command:
+If you don't have a GCS bucket, create one with this command:
 
 ```bash
 # Make sure BASE_OUTPUT_DIR is set in run_recipe.sh before running this.
@@ -178,11 +180,11 @@ XPK and its dependencies. Docker installation is part of this process.
 
 The following software versions are used:
 
--   Libtpu version: 0.0.31.dev20251119+nightly
--   Jax version: 0.8.1
--   Maxtext version: maxtext-tutorial-v1.3.0
--   Python 3.11
--   XPK 0.14.3
+-   Libtpu version: 0.0.33.dev20260104+nightly
+-   Jax version: 0.8.3.dev20260104
+-   Maxtext version: 98a3d4c
+-   Python: 3.11
+-   XPK: 0.16.1
 
 Docker Image Building Command:
 
@@ -191,24 +193,24 @@ export CONTAINER_REGISTRY="" # Initialize with your registry
 export CLOUD_IMAGE_NAME="${USER}-maxtext-runner"
 export WORKLOAD_IMAGE="${CONTAINER_REGISTRY}/${PROJECT_ID}/${CLOUD_IMAGE_NAME}"
 
-# Let's temporarily switch to a Python 3.12 virtual environment for Docker build
-uv venv --seed ~/.local/bin/venv-docker --python 3.12 --clear
-source ~/.local/bin/venv-docker/bin/activate
+# Set up and Activate Python 3.12 virtual environment for Docker build
+uv venv --seed ${HOME}/.local/bin/venv-docker --python 3.12 --clear
+source ${HOME}/.local/bin/venv-docker/bin/activate
 pip install --upgrade pip
 
 # Make sure you're running on a Virtual Environment with python 3.12
-if [[ "$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)" == "3.12" ]]; then { echo You have the correct Python version 3.12; } else { >&2 echo Error: Python version must be 3.12; } fi
+if [[ "$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null)" == "3.12" ]]; then { echo "You have the correct Python version 3.12"; } else { >&2 echo "Error: Python version must be 3.12."; false; } fi
 
 # Clone MaxText Repository and Checkout Recipe Branch
 git clone https://github.com/AI-Hypercomputer/maxtext.git
 cd maxtext
-git checkout maxtext-tutorial-v1.5.0
+git checkout 98a3d4c
 
 # Build and upload the docker image
 bash dependencies/scripts/docker_build_dependency_image.sh \
   MODE=nightly \
-  JAX_VERSION=0.8.1 \
-  LIBTPU_VERSION=0.0.31.dev20251119+nightly
+  JAX_VERSION=0.8.3.dev20260104 \
+  LIBTPU_VERSION=0.0.33.dev20260104+nightly
 bash dependencies/scripts/docker_upload_runner.sh CLOUD_IMAGE_NAME=${CLOUD_IMAGE_NAME}
 
 # Deactivate the virtual environment
@@ -237,16 +239,15 @@ does this for you already):
 gcloud container clusters get-credentials ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE}
 ```
 
-### Run deepseek3-671b Pretraining Workload
+### Run deepseek-v3 Pretraining Workload
 
 The `run_recipe.sh` script contains all the necessary environment variables and
-configurations to launch the deepseek3-671b pretraining workload.
+configurations to launch the deepseek-v3 pretraining workload.
 
 To run the benchmark, first make the script executable and then run it:
 
 ```bash
 chmod +x run_recipe.sh
-
 ./run_recipe.sh
 ```
 
@@ -321,7 +322,7 @@ xpk workload list --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZON
 For more in-depth debugging, use xpk inspector: (`xpk inspector`)
 
 ```bash
-xpk inspector --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE} [--workload <workload_name>]
+xpk inspector --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE} [--workload ${WORKLOAD_NAME}]
 ```
 
 ### Delete resources
@@ -329,7 +330,7 @@ xpk inspector --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE} [
 #### Delete a specific workload
 
 ```bash
-xpk workload delete --workload <workload_name> --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE}
+xpk workload delete --workload ${WORKLOAD_NAME} --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE}
 # Or filter and delete:
 xpk workload delete --cluster ${CLUSTER_NAME} --project ${PROJECT_ID} --zone ${ZONE} --filter-by-job=${USER}
 ```
@@ -348,6 +349,7 @@ After the job completes, you can check the results by:
 -   Checking any data stored in the Google Cloud Storage bucket specified by the
     `${BASE_OUTPUT_DIR}` variable in your `run_recipe.sh`.
 -   Reviewing metrics in Cloud Monitoring, if configured.
+
 
 ## Next steps: deeper exploration and customization
 

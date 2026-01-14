@@ -13,7 +13,7 @@ source "${UV_VENV_PATH}/bin/activate"
 # Check if xpk is installed in the venv
 if ! pip show xpk &> /dev/null; then
     echo "xpk not found in the virtual environment. Please install it by running:"
-    echo "pip install xpk==0.16.0"
+    echo "pip install xpk==0.16.1"
     exit 1
 fi
 # --- End Environment Setup ---
@@ -57,13 +57,11 @@ XLA_FLAGS=" \
   --xla_tpu_enable_layer_scheduler_for_dependent_collectives=true \
   --xla_tpu_enable_sparse_core_collective_aggregator=true \
   --xla_tpu_enable_latency_hiding_layer_scheduler=true \
-  --xla_tpu_enable_multi_compute_overlap_in_layer_scheduler=true \
-  --xla_lhs_threshold_for_applying_output_fusion_latency_multiplier=1e10 \
-  --xla_lhs_output_fusion_latency_multiplier=1e-3 \
+  --xla_tpu_enable_multi_compute_overlap_in_layer_scheduler=false \
   --xla_tpu_enable_sparse_core_offload_queuing_in_lhs=true \
-  --xla_tpu_sparse_core_all_gather_latency_multiplier=1.3 \
   --xla_tpu_sparse_core_all_reduce_offload_min_size_in_bytes=204800 \
-  --xla_tpu_sparse_core_reduce_scatter_latency_multiplier=3 \
+  --xla_tpu_enable_sparse_core_collective_offload_nd_reduce_scatter=true \
+  --xla_tpu_enable_3d_reduce_scatter_decomposer=false \
   --xla_max_concurrent_async_all_gathers=1 \
   --xla_tpu_scheduler_percent_shared_memory_limit=140 \
   --xla_tpu_enable_collective_pipeliner=true \

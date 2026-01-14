@@ -181,7 +181,7 @@ The following software versions are used:
 
 -   Libtpu version: 0.0.32.dev20251215+nightly
 -   Jax version: 0.8.2.dev20251215
--   Maxtext version: maxtext-tutorial-v1.4.0
+-   Maxtext version: maxtext-tutorial-v1.5.0
 -   Python: 3.11
 -   XPK: 0.16.1
 
