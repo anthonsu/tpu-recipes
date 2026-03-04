@@ -237,12 +237,6 @@ create a node pool with a single TPU v7 node in 2x2x1 configuration.
                 secretKeyRef:
                   name: hf-secret
                   key: hf_api_token
-            - name: TPU_BACKEND_TYPE
-              value: jax
-            - name: MODEL_IMPL_TYPE
-              value: vllm
-            - name: VLLM_DISABLE_SHARED_EXPERTS_STREAM
-              value: '1'
             ports:
             - containerPort: 8000
             resources:
