@@ -140,8 +140,8 @@ create a node pool with a single TPU v7 node in 2x2x1 configuration.
       --cluster=${CLUSTER_NAME}
     ```
 
-1. **(Optional with step 1) Create TPU v7 (Ironwood) flex start nodepool**. If a node pool does not already exist
-create a flex start node pool which spins a single TPU v7 node in 2x2x1 configuration when workload submitted. 
+1. **(Optional) Create TPU v7 flex-start nodepool**. Create a flex-start node pool that provisions a single TPU v7 node
+(2x2x1 topology) when a workload is submitted.
 
     ```bash
     gcloud container node-pools create ${NODEPOOL_NAME} \
