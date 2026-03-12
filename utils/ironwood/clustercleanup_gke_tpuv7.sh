@@ -69,7 +69,6 @@ function print_info() {
 export PROJECT_ID="<PROJECT_ID>"              # REQUIRED: Your GCP project ID
 export REGION="<REGION>"                      # GCP region for resources
 export ZONE="<ZONE>"                      # GCP zone for zonal resources
-export GKE_VERSION="<GKE_VERSION>"
 export RESOURCE_NAME="<RESOURCE_NAME>"
 export CLUSTER_NAME=${RESOURCE_NAME}-gke
 export NETWORK_NAME=${RESOURCE_NAME}-privatenetwork
