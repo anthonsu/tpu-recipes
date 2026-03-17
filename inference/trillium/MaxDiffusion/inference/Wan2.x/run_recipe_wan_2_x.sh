@@ -8,11 +8,9 @@ WORKLOAD_TYPE="$1"
 
 if [ -z "$WORKLOAD_TYPE" ]; then
     echo "Error: No input provided."
-    echo "Usage: $0 {Wan2.1-T2V|Wan2.1-I2V|Wan2.2-T2V|Wan2.2-I2V}"
+    echo "Usage: $0 {wan2-1-t2v|wan2-1-i2v|wan2-2-t2v|wan2-2-i2v}"
     exit 1
 fi
-
-UV_VENV_PATH=".local/bin/venv"
 
 # Activate the virtual environment
 if [ -f "${UV_VENV_PATH}/bin/activate" ]; then
@@ -36,6 +34,16 @@ fi
 # to match your specific GCP project and cluster setup.
 # ---
 
+# Environmental Variables
+export WORKLOAD_IMAGE="${WORKLOAD_IMAGE}"
+export WORKLOAD_NAME="$(printf "%.26s" "${USER//_/-}-${MODEL_NAME}")-$(date +%Y%m%d-%H%M)"
+export BASE_YAML_CONFIG_WAN_2_1_T2V="src/maxdiffusion/configs/base_wan_14b.yml"
+export BASE_YAML_CONFIG_WAN_2_2_T2V="src/maxdiffusion/configs/base_wan_27b.yml"
+export BASE_YAML_CONFIG_WAN_2_1_I2V="src/maxdiffusion/configs/base_wan_i2v_14b.yml"
+export BASE_YAML_CONFIG_WAN_2_2_I2V="src/maxdiffusion/configs/base_wan_i2v_27b.yml"
+export SCRIPT_PATH="src/maxdiffusion/generate_wan.py"
+export COMMAND_PREFIX="pip install . && export HF_HUB_CACHE=/dev/shm && export HF_HUB_ENABLE_HF_TRANSFER=1"
+
 # XLA Flags
 XLA_FLAGS="'\"'\"' \
   --xla_tpu_scoped_vmem_limit_kib=65536 \
@@ -54,7 +62,6 @@ height=720 \
 jax_cache_dir='\"'\"'${BASE_OUTPUT_DIR}/jax_cache/'\"'\"' \
 skip_jax_distributed_system=False \
 per_device_batch_size=0.25 \
-ici_data_parallelism=2 \
 ici_context_parallelism=4 \
 allow_split_physical_axes=True \
 flow_shift=5.0 \
@@ -62,16 +69,29 @@ enable_profiler=True \
 run_name='\"'\"'${WORKLOAD_NAME}'\"'\"' \
 output_dir='\"'\"'${BASE_OUTPUT_DIR}/'\"'\"' \
 flash_min_seq_length=0 \
-seed=118445 \
 flash_block_sizes='\"'\"'{\"block_kv\":2048,\"block_kv_compute\":1024,\"block_kv_dkv\":2048,\"block_kv_dkv_compute\":1024,\"block_q\":3024,\"block_q_dkv\":3024,\"use_fused_bwd_kernel\":true}'\"'\"' \
 base_output_directory='\"'\"'${BASE_OUTPUT_DIR}'\"'\"'"
 
 # ==============================================================================
 # Workload Specific Arguments
 # ==============================================================================
+case "$TPU_TYPE" in
+    "v6e-8")
+        SPECIFIC_ARGS="ici_data_parallelism=2"
+        ;;
+    "v6e-16")
+        SPECIFIC_ARGS="ici_data_parallelism=4"
+        ;;
+    *)
+        echo "Error: Invalid TPU_TYPE."
+        echo "Only supports v6e-8 and v6e-16"
+        exit 1
+        ;;
+esac
+COMMON_MAXDIFFUSION_ARGS="${COMMON_MAXDIFFUSION_ARGS} ${SPECIFIC_ARGS}"
 
 case "$WORKLOAD_TYPE" in
-    "Wan2.1-T2V")
+    "wan2-1-t2v")
         echo "Starting the Wan2.1-T2V..."
         SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.1'\"'\"' \
@@ -80,7 +100,7 @@ case "$WORKLOAD_TYPE" in
         num_inference_steps=50"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_1_T2V}
         ;;
-    "Wan2.1-I2V")
+    "wan2-1-i2v")
         echo "Starting the Wan2.1-I2V..."
         SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.1'\"'\"' \
@@ -88,7 +108,7 @@ case "$WORKLOAD_TYPE" in
         num_inference_steps=50"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_1_I2V}
         ;;
-    "Wan2.2-T2V")
+    "wan2-2-t2v")
         echo "Starting the Wan2.2-T2V..."
         SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.2'\"'\"' \
@@ -100,7 +120,7 @@ case "$WORKLOAD_TYPE" in
         remat_policy='\"'\"'FULL'\"'\"'"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_2_T2V}
         ;;
-    "Wan2.2-I2V")
+    "wan2-2-i2v")
         echo "Starting the Wan2.2-I2V..."
         SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.2'\"'\"' \
@@ -134,14 +154,14 @@ cmd="xpk workload create \
   --zone=$ZONE \
   --priority=medium \
   --max-restarts=0 \
-  --tpu-type=$TPU_TPYE \
+  --tpu-type=$TPU_TYPE \
   --num-slices=1 \
   --docker-image="${WORKLOAD_IMAGE}" \
   --enable-debug-logs \
    \
   --workload="${WORKLOAD_NAME}" \
   --command='set -e && \
-export ARTIFACT_DIR=${ARTIFACT_DIR} && \
+export ARTIFACT_DIR=${BASE_OUTPUT_DIR} && \
 export LIBTPU_INIT_ARGS=${XLA_FLAGS} && \
 ${COMMAND_PREFIX} && export HF_TOKEN=${HF_TOKEN} && \
   python ${SCRIPT_PATH}  \

@@ -248,24 +248,19 @@ To configure and run the benchmark:
 
 ```bash
 # --- Environment Variables ---
-export PROJECT_ID=""
-export CLUSTER_NAME=""
-export ZONE=""
-export BASE_OUTPUT_DIR=""
-export ARTIFACT_DIR="${BASE_OUTPUT_DIR}"
-export HF_TOKEN=""
-export WORKLOAD_IMAGE="${WORKLOAD_IMAGE}"
-export WORKLOAD_NAME="$(printf "%.26s" "${USER//_/-}-wan2-1")-$(date +%Y%m%d-%H%M)"
-export SCRIPT_PATH="src/maxdiffusion/generate_wan.py"
-export BASE_YAML_CONFIG_WAN_2_1_T2V="src/maxdiffusion/configs/base_wan_14b.yml"
-export BASE_YAML_CONFIG_WAN_2_2_T2V="src/maxdiffusion/configs/base_wan_27b.yml"
-export BASE_YAML_CONFIG_WAN_2_1_I2V="src/maxdiffusion/configs/base_wan_i2v_14b.yml"
-export BASE_YAML_CONFIG_WAN_2_2_I2V="src/maxdiffusion/configs/base_wan_i2v_27b.yml"
-export COMMAND_PREFIX="pip install . && export HF_HUB_CACHE=/dev/shm && export HF_HUB_ENABLE_HF_TRANSFER=1"
-export TPU_TPYE="v6e-8" # v6e-16 for 16 chips
+export PROJECT_ID=<YOUR_PROJECT_ID>
+export CLUSTER_NAME=<YOUR_CLUSTER_NAME>
+export ZONE=<YOUR_CLUSTER_ZONE>
+export BASE_OUTPUT_DIR="" # E.g. gs://<YOUR_BUCKET_NAME>
+export HF_TOKEN=<YOUR_HF_TOKEN>
+export MODEL_NAME=<YOUR_MODEL_NAME> # Supported models: wan2-1-t2v, wan2-1-i2v, wan2_2-t2v, wan2_2-i2v
+export TPU_TYPE=<YOUR_HARDWARE_TYPE> # v6e-8 or v6e-16 supported
+export UV_VENV_PATH=<YOUR_VENV_PATH>
+export WORKLOAD_IMAGE="${CONTAINER_REGISTRY}/${PROJECT_ID}/${CLOUD_IMAGE_NAME}"
+
 chmod +x run_recipe_wan_2_x.sh
 nano ./run_recipe_wan_2_x.sh
-./run_recipe_wan_2_x.sh {Wan2.1-T2V|Wan2.1-I2V|Wan2.2-T2V|Wan2.2-I2V}
+./run_recipe_wan_2_x.sh ${MODEL_NAME}
 ```
 
 You can customize the run by modifying `run_recipe_wan_2_x.sh`:
@@ -349,10 +344,12 @@ xpk cluster delete --cluster ${CLUSTER_NAME} --zone ${ZONE} --project ${PROJECT_
 
 After the job completes, you can check the results by:
 
--   Accessing output logs from your job.
--   Checking any data stored in the Google Cloud Storage bucket specified by the
+-   Video generated can be found in the Google Cloud Storage bucket specified by the
     `${BASE_OUTPUT_DIR}` variable in your `run_recipe.sh`.
--   Reviewing metrics in Cloud Monitoring, if configured.
+-   Per video generation time (throughput) can be found by extracting the tensorboard content
+    using event_accumulator inside tensorboard.backend.event_processing
+-   Accessing output logs from your job.
+
 
 ## Next steps: deeper exploration and customization
 
