@@ -1,38 +1,40 @@
 #!/bin/bash
+set -e
 
 # --- Environment Setup ---
-# This script requires uv and a Python N/A virtual environment with xpk installed.
+# This script requires uv and a Python virtual environment with xpk installed.
 # If you haven't set up uv and the environment, please refer to the README.md.
-first_input="$1"
+WORKLOAD_TYPE="$1"
+
+if [ -z "$WORKLOAD_TYPE" ]; then
+    echo "Error: No input provided."
+    echo "Usage: $0 {Wan2.1-T2V|Wan2.1-I2V|Wan2.2-T2V|Wan2.2-I2V}"
+    exit 1
+fi
 
 UV_VENV_PATH=".local/bin/venv"
 
 # Activate the virtual environment
-source "${UV_VENV_PATH}/bin/activate"
+if [ -f "${UV_VENV_PATH}/bin/activate" ]; then
+    source "${UV_VENV_PATH}/bin/activate"
+else
+    echo "Error: Virtual environment not found at ${UV_VENV_PATH}. Check README.md."
+    exit 1
+fi
 
 # # Check if xpk is installed in the venv
-# if ! pip show xpk &> /dev/null; then
-#     echo "xpk not found in the virtual environment. Please install it by running:"
-#     echo "pip install xpk==1.3.0"
-#     exit 1
-# fi
-
-# Read the first command-line argument and store it in a descriptive variable
-
-# Check if the user actually provided an argument
-if [ -z "$first_input" ]; then
-    echo "Error: No input provided."
-    echo "Usage: ./run_recipe_Wan.sh <input>"
-else
-    echo "You ran the script with the input: $first_input"
+if ! pip show xpk &> /dev/null; then
+    echo "xpk not found in the virtual environment. Please install it by running:"
+    echo "pip install xpk==1.3.0"
+    exit 1
 fi
+
 # --- End Environment Setup ---
 
 # --- Configuration ---
 # Before running this script, please modify the environment variables below
 # to match your specific GCP project and cluster setup.
 # ---
-
 
 # XLA Flags
 XLA_FLAGS="'\"'\"' \
@@ -64,32 +66,31 @@ seed=118445 \
 flash_block_sizes='\"'\"'{\"block_kv\":2048,\"block_kv_compute\":1024,\"block_kv_dkv\":2048,\"block_kv_dkv_compute\":1024,\"block_q\":3024,\"block_q_dkv\":3024,\"use_fused_bwd_kernel\":true}'\"'\"' \
 base_output_directory='\"'\"'${BASE_OUTPUT_DIR}'\"'\"'"
 
+# ==============================================================================
+# Workload Specific Arguments
+# ==============================================================================
 
-
-
-case "$first_input" in
+case "$WORKLOAD_TYPE" in
     "Wan2.1-T2V")
         echo "Starting the Wan2.1-T2V..."
-        Wan2_1_T2V_ARGS="\
+        SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.1'\"'\"' \
         prompt='\"'\"'a japanese pop star young woman with black hair is singing with a smile. She is inside a studio with dim lighting and musical instruments.'\"'\"' \
         guidance_scale=5.0 \
         num_inference_steps=50"
-        MAXDIFFUSION_ARGS="${COMMON_MAXDIFFUSION_ARGS} ${Wan2_1_T2V_ARGS}"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_1_T2V}
         ;;
     "Wan2.1-I2V")
         echo "Starting the Wan2.1-I2V..."
-        Wan2_1_I2V_ARGS="\
+        SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.1'\"'\"' \
         pretrained_model_name_or_path='\"'\"'Wan-AI/Wan2.1-I2V-14B-720P-Diffusers'\"'\"' \
         num_inference_steps=50"
-        MAXDIFFUSION_ARGS="${COMMON_MAXDIFFUSION_ARGS} ${Wan2_1_I2V_ARGS}"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_1_I2V}
         ;;
     "Wan2.2-T2V")
         echo "Starting the Wan2.2-T2V..."
-        Wan2_2_T2V_ARGS="\
+        SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.2'\"'\"' \
         prompt='\"'\"'a japanese pop star young woman with black hair is singing with a smile. She is inside a studio with dim lighting and musical instruments.'\"'\"' \
         guidance_scale_low=3.0 \
@@ -97,29 +98,35 @@ case "$first_input" in
         boundary_ratio=0.875 \
         num_inference_steps=40 \
         remat_policy='\"'\"'FULL'\"'\"'"
-        MAXDIFFUSION_ARGS="${COMMON_MAXDIFFUSION_ARGS} ${Wan2_2_T2V_ARGS}"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_2_T2V}
         ;;
     "Wan2.2-I2V")
         echo "Stopping the Wan2.2-I2V..."
-        Wan2_2_I2V_ARGS="\
+        SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.2'\"'\"' \
         prompt="'\"'\"'a japanese pop star young woman with black hair is singing with a smile. She is inside a studio with dim lighting and musical instruments.'\"'\"'" \
         guidance_scale_low=3.0 \
         guidance_scale_high=4.0 \
         num_inference_steps=40 \
         remat_policy='\"'\"'FULL'\"'\"'"
-        MAXDIFFUSION_ARGS="${COMMON_MAXDIFFUSION_ARGS} ${Wan2_2_I2V_ARGS}"
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_2_I2V}
         ;;
     *)
-        # The asterisk (*) acts as the "else" or default catch-all
         echo "Error: Invalid input."
         echo "Please run as: ./run_recipe_wan_2_x.sh {Wan2.1-T2V|Wan2.1-I2V|Wan2.2-T2V|Wan2.2-I2V}"
+        exit 1
         ;;
 esac
-echo ${SCRIPT_PATH}
-echo ${MAXDIFFUSION_ARGS}
+
+MAXDIFFUSION_ARGS="${COMMON_MAXDIFFUSION_ARGS} ${SPECIFIC_ARGS}"
+
+echo "Script Path: ${SCRIPT_PATH}"
+echo "MaxDiffusion Args: ${MAXDIFFUSION_ARGS}"
+echo "Deploying workload via xpk..."
+
+# ==============================================================================
+# Execute Command
+# ==============================================================================
 
 cmd="xpk workload create \
   --cluster=$CLUSTER_NAME \
