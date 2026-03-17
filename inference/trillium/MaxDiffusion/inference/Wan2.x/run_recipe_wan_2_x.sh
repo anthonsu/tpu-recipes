@@ -101,7 +101,7 @@ case "$WORKLOAD_TYPE" in
         BASE_YAML_CONFIG=${BASE_YAML_CONFIG_WAN_2_2_T2V}
         ;;
     "Wan2.2-I2V")
-        echo "Stopping the Wan2.2-I2V..."
+        echo "Starting the Wan2.2-I2V..."
         SPECIFIC_ARGS="\
         model_name='\"'\"'wan2.2'\"'\"' \
         prompt="'\"'\"'a japanese pop star young woman with black hair is singing with a smile. She is inside a studio with dim lighting and musical instruments.'\"'\"'" \
