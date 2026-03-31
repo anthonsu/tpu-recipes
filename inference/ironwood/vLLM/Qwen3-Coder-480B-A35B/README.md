@@ -235,7 +235,6 @@ create a node pool with a **single TPU v7 node** in 2x2x1 configuration.
             - --enable-expert-parallel
             - --no-enable-prefix-caching
             - --async-scheduling
-            - --disable-log-requests
             - --download-dir=/data
             env:
             - name: HF_HOME
