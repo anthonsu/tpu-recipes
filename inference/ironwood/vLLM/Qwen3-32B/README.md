@@ -234,7 +234,6 @@ create a node pool with a single TPU v7 node in 1x1x1 configuration.
             - --kv-cache-dtype=fp8
             - --no-enable-prefix-caching
             - --async-scheduling
-            - --disable-log-requests
             - '--additional_config={"quantization": {"qwix": {"rules": [{"module_path": ".*", "weight_qtype": "float8_e4m3fn", "act_qtype": "float8_e4m3fn"}]}}}'
             - --download-dir=/data
             env:
