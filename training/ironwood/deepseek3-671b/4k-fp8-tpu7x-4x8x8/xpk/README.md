@@ -5,13 +5,6 @@ This recipe outlines the steps for running a deepseek-v3
 [Ironwood GKE clusters](https://cloud.google.com/kubernetes-engine) by using
 [XPK](https://github.com/AI-Hypercomputer/xpk).
 
-<!--
-================================================================================
-WARNING: WORKLOAD DETAILS MISSING
-Some workload details (Sequence Length, Precision, or Chips) are showing as "N/A".
-Please ensure these values are correctly configured in the workload or config.yml.
-================================================================================
--->
 ## Workload Details
 
 **Note:** Internal tokens and GCS buckets have been replaced with placeholders like `<your-dataset-path>` and `<your-gcs-bucket-path>`. Please replace these with your own values before running.
@@ -19,7 +12,7 @@ Please ensure these values are correctly configured in the workload or config.ym
 This workload is configured with the following details:
 
 -   Sequence Length: 4096
--   Precision: N/A
+-   Precision: fp8
 -   Chips: 256 (4x8x8 topology)
 
 ## Prerequisites
@@ -153,7 +146,7 @@ across all commands and configurations.
     default, matching the image built in the
     [Docker container image](#docker-container-image) section.
 -   `WORKLOAD_NAME`: A unique name for your workload. This is set in
-    `run_recipe.sh` to `${USER}-deepseek-v3-$(date +%H%M)` by default.
+    `run_recipe.sh` to `${USER}-deepseekv3-671b-4096-fsdp-fp8-$(date +%Y%m%d-%H%M)` by default.
 -   `GKE_VERSION`: The GKE version, `1.34.0-gke.2201000` or later.
 -   `ACCELERATOR_TYPE`: The TPU type (e.g., `tpu7x-4x4x4`). See topologies
     [here](https://cloud.google.com/kubernetes-engine/docs/concepts/plan-tpus#configuration).
@@ -188,16 +181,6 @@ have Docker installed on your workstation, see the section below for installing
 XPK and its dependencies. Docker installation is part of this process.
 
 ### Steps for building workload image
-
-**Warning:** If any of the software versions below show as "N/A", you *must*
-fill in the correct versions. To find the missing versions (e.g., for MaxText
-commit hash, Libtpu, and Jax/Jaxlib), you may need to:
-1.  Pull the Docker image from the workload that this recipe is based on.
-2.  Start the Docker container.
-3.  Run commands within the container to get the specific versions. For example,
-to find the MaxText commit, you can use `git rev-parse HEAD` inside the cloned
-MaxText repository within the container. For Python package versions, use
-`pip show <package_name>`.
 
 The following software versions are used:
 
