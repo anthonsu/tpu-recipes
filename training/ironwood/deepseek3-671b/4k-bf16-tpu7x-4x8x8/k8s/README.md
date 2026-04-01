@@ -5,20 +5,12 @@ This recipe outlines the steps for running a deepseek-v3
 [Ironwood GKE clusters](https://cloud.google.com/kubernetes-engine)
 by applying a Kubernetes manifest to deploy a JobSet resource.
 
-<!--
-================================================================================
-WARNING: WORKLOAD DETAILS MISSING
-Some workload details (Sequence Length, Precision, or Chips) are showing as "N/A".
-Please ensure these values are correctly configured in the workload or config.yml.
-================================================================================
--->
-
 ## Workload Details
 
 This workload is configured with the following details:
 
 -   Sequence Length: 4096
--   Precision: N/A
+-   Precision: bf16
 -   Chips: 256 (4x8x8 topology)
 
 ## Prerequisites
