@@ -116,7 +116,6 @@ float32_weight_sum=False \
 use_tokamax_gmm=True \
 tokenizer_path=assets/tokenizer.mistral-v3 \
 dataset_type=synthetic \
-dataset_path=<your-dataset-path> \
 use_qwix_quantization=True \
 quantization=fp8_full \
 wi_tile_fwd_batch_seq=256 \
