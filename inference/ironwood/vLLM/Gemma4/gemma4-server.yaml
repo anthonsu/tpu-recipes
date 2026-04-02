@@ -3,6 +3,7 @@ kind: Namespace
 metadata:
   name: gemma4-test
 ---
+# TODO: Update the storage class if required (or if using a standard GKE storage class)
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -42,6 +43,7 @@ spec:
       labels:
         app: vllm-tpu
     spec:
+      # TODO: Update the topology to match your allocated TPU node pool (e.g., 2x2x1 is 4 chips)
       nodeSelector:
         cloud.google.com/gke-tpu-accelerator: tpu7x
         cloud.google.com/gke-tpu-topology: 2x2x1
@@ -54,10 +56,12 @@ spec:
         - --host=0.0.0.0
         - --port=8000
         - --seed=42
+        # TODO: Update tensor-parallel-size to match the number of chips in your topology
         - --tensor-parallel-size=8
         - --max-model-len=16384
         - --download-dir=/data
         - --no-enable-prefix-caching
+        # TODO: Update the model if you wish to switch to MoE or another variant
         - --model=google/gemma-4-31B-it
         - --async-scheduling
         - --gpu-memory-utilization=0.90
@@ -71,6 +75,7 @@ spec:
         - name: HF_TOKEN
           valueFrom:
             secretKeyRef:
+              # TODO: Update the secret name if you use a custom name
               name: hf-secret
               key: hf_api_token
         ports:
