@@ -161,7 +161,7 @@ curl http://localhost:8000/v1/chat/completions \
                     {
                         "type": "image_url",
                         "image_url": {
-                            "url": "https://news.bbc.co.uk/media/images/38107000/jpg/_38107299_ronaldogoal_ap_300.jpg"
+                            "url": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=800&q=80"
                         }
                     },
                     {
