@@ -104,7 +104,6 @@ float32_weight_sum=False \
 use_tokamax_gmm=True \
 tokenizer_path=assets/tokenizer.mistral-v3 \
 dataset_type=synthetic \
-dataset_path=<your_dataset_path> \
 enable_checkpointing=False \
 steps=30 \
 base_output_directory=${BASE_OUTPUT_DIR} \
