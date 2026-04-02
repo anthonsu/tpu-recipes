@@ -8,10 +8,10 @@ In this guide, we show how to serve Gemma 4 IT models (e.g., `google/gemma-4-31B
 
 The following larger Gemma 4 models are verified for deployment on TPU.
 
-| Model | Parameters | Min TPUs (Chips) | HuggingFace |
-| :---- | :---- | :---- | :---- |
-| Gemma 4 31B IT | 31B | 4× | [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it) |
-| Gemma 4 26B-A4B IT (MoE) | 26B (4B active) | 4× | [google/gemma-4-26B-A4B-it](https://huggingface.co/google/gemma-4-26B-A4B-it) |
+| Model | Parameters | HuggingFace |
+| :---- | :---- | :---- |
+| Gemma 4 31B IT | 31B | [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it) |
+| Gemma 4 26B-A4B IT (MoE) | 26B (4B active) | [google/gemma-4-26B-A4B-it](https://huggingface.co/google/gemma-4-26B-A4B-it) |
 
 ### Models Not Yet Verified for TPU
 
