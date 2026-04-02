@@ -8,16 +8,13 @@ In this guide, we show how to serve Gemma 4 IT models (e.g., `google/gemma-4-31B
 
 The following larger Gemma 4 models are verified for deployment on TPU.
 
-| Model | Parameters | HuggingFace |
-| :---- | :---- | :---- |
-| Gemma 4 31B IT | 31B | [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it) |
-| Gemma 4 26B-A4B IT (MoE) | 26B (4B active) | [google/gemma-4-26B-A4B-it](https://huggingface.co/google/gemma-4-26B-A4B-it) |
+| Model | Parameters | Min TPUs (Chips) | HuggingFace |
+| :---- | :---- | :---- | :---- |
+| Gemma 4 31B IT | 31B | 4× | [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it) |
+| Gemma 4 26B-A4B IT (MoE) | 26B (4B active) | 4× | [google/gemma-4-26B-A4B-it](https://huggingface.co/google/gemma-4-26B-A4B-it) |
 
-### Models Not Yet Verified for TPU
-
-The smaller models are currently not verified for TPU deployment:
-- Gemma 4 E2B IT
-- Gemma 4 E4B IT
+> [!NOTE]
+> Gemma 4 E2B IT, Gemma 4 E4B IT are currently not verified for TPU deployment.
 
 ### Known Limitations with Current TPU Verification
 
@@ -106,17 +103,16 @@ export HF_TOKEN=<your HF token>
 
 Now we serve the vllm server. Make sure you keep this terminal open for the entire duration of this experiment.
 
-We use `MODEL_IMPL_TYPE=vllm` to specify the backend.
 
 ```bash
 export MAX_MODEL_LEN=16384
 export TP=8 # number of chips
 
-MODEL_IMPL_TYPE=vllm vllm serve google/gemma-4-31B-it --max-model-len $MAX_MODEL_LEN --tensor-parallel-size $TP --disable_chunked_mm_input --enable-auto-tool-choice --tool-call-parser gemma4
+vllm serve google/gemma-4-31B-it --max-model-len $MAX_MODEL_LEN --tensor-parallel-size $TP --disable_chunked_mm_input --enable-auto-tool-choice --tool-call-parser gemma4
 
 ```
 
-It takes a few minutes depending on the model size to prepare the server - once you see the below snippet in the logs, it means that the server is ready to serve requests:
+It takes about 10 minutes depending on the model size to prepare the server - once you see the below snippet in the logs, it means that the server is ready to serve requests:
 
 ```bash
 INFO:     Started server process [x]

@@ -25,7 +25,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1000Gi
+      storage: 100Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -73,8 +73,6 @@ spec:
             secretKeyRef:
               name: hf-secret
               key: hf_api_token
-        - name: MODEL_IMPL_TYPE
-          value: vllm
         ports:
         - containerPort: 8000
         resources:
