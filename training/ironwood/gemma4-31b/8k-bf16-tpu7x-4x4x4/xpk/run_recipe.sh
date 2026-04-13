@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # --- Environment Setup ---
-# This script requires uv and a Python 3.11 virtual environment with xpk installed.
+# This script requires uv and a Python 3.12 virtual environment with xpk installed.
 # If you haven't set up uv and the environment, please refer to the README.md.
 
 UV_VENV_PATH="${HOME}/.local/bin/venv"
-UV_PYTHON_VERSION="3.11"
+UV_PYTHON_VERSION="3.12"
 
 # Activate the virtual environment
 source "${UV_VENV_PATH}/bin/activate"
