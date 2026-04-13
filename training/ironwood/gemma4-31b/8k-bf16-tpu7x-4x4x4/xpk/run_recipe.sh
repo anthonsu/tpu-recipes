@@ -44,7 +44,6 @@ max_target_length=8192 \
 async_checkpointing=False \
 enable_checkpointing=False \
 dataset_type=synthetic \
-dataset_path=gs://<your_dataset_path> \
 steps=30 \
 base_output_directory=${BASE_OUTPUT_DIR} \
 run_name=${WORKLOAD_NAME}"
