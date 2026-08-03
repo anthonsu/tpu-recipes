@@ -173,7 +173,7 @@ create a node pool with a **single TPU v7 node** in 2x2x1 configuration.
     other workload, please change `max-model-len` and restart the
     server.
 
-    ```
+    ```yaml
     apiVersion: storage.k8s.io/v1
     kind: StorageClass
     metadata:
@@ -477,7 +477,7 @@ To benchmark the server, we use the vLLM benchmark client.
     Save the following manifest as `vllm-benchmark-16k.yaml` and apply it using
     `kubectl apply -f vllm-benchmark-16k.yaml`.
 
-    ```
+    ```yaml
     apiVersion: v1
     kind: Pod
     metadata:
@@ -514,7 +514,7 @@ To benchmark the server, we use the vLLM benchmark client.
 
 2. Check the progress of benchmark:
 
-    ```
+    ```bash
     $ kubectl logs -f vllm-bench # For 16k workload
     …
     ============ Serving Benchmark Result ============
@@ -530,13 +530,14 @@ To benchmark the server, we use the vLLM benchmark client.
     P99 E2EL (ms):                           xxx
     ```
 
-    Workload | Total Token Throughput (tok/s) | Request Throughput (req/s)
-    :------- | :------------------------------| : -----
-    16k      | 84038.27                       | 5.13
+    | Workload | Total Token Throughput (tok/s) | Request Throughput (req/s) |
+    |:---|:---|:---|
+    | 16k | 84038.27 | 5.13 |
+
 
 3. Clean up
 
-    ```
+    ```bash
     kubectl delete -f vllm-benchmark-16k.yaml
     kubectl delete -f vllm-tpu.yaml
     ```

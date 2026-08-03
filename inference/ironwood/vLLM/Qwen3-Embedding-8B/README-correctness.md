@@ -66,142 +66,11 @@ cd tpu-inference
 uv pip install -e .
 ```
 
-## 3. Create Validation Scripts
-Create the following two scripts in your home directory (`~`) to execute the parity check.
+### 3. Validation Scripts
+The following validation scripts are provided in this directory to execute the parity check:
 
-### Create `embed_script.py`
-This script uses the pooling runner to generate embeddings.
-
-```python
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import json
-import os
-import random
-import numpy as np
-
-from vllm import LLM
-
-
-def main():
-    default_model = "Qwen/Qwen3-Embedding-8B"
-    model = os.environ.get("DEV_MODEL", default_model)
-
-    target_device = os.environ.get("VLLM_TARGET_DEVICE", "cpu").lower()
-    tp_size = 2 if target_device == "tpu" else 1
-
-    llm = LLM(
-        model=model,
-        runner="pooling",
-        max_num_seqs=16,
-        max_model_len=16384,
-        max_num_batched_tokens=512,
-        dtype="bfloat16",
-        trust_remote_code=True,
-        tensor_parallel_size=tp_size
-    )
-
-    base_inputs = [
-        "Hello, my name is Alice.",
-        "In today's fast-paced world, finding a balance between productivity "
-        "and mindfulness has become more important than ever. As urban "
-        "landscapes continue to evolve, people are looking for ways to "
-        "reconnect with nature without losing the convenience of modern "
-        "technology.",
-        "最近の技術革新により、私たちの日常生活は劇的に変化しました。"
-        "都市の風景は新旧の建築が入り混じり、静かな朝の光が窓から差し込む中で、"
-        "人々はそれぞれの目的を持って歩き始めます。",
-        "최근 기술의 발전과 함께 우리의 일상에는 많은 변화가 찾아왔습니다.",
-    ]
-    inputs = [text * 180 for text in base_inputs]
-
-    results = llm.embed(inputs)
-
-    report = dict(zip(base_inputs, [r.outputs.embedding for r in results]))
-
-    output_file = "embed-output-tpu.json" if os.environ.get("VLLM_TARGET_DEVICE") == "tpu" else "embed-output-cpu.json"
-
-    with open(output_file, "w") as f:
-        json.dump(report, f, indent=4)
-
-    print(f"Results saved to {output_file}")
-
-
-if __name__ == "__main__":
-    main()
-
-```
-
-### Create `compare_precision.py`
-This script calculates the Cosine Similarity between CPU and TPU output tensors.
-
-```python
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import json
-import numpy as np
-import datetime
-
-def cosine_similarity(v1, v2):
-    v1 = np.array(v1)
-    v2 = np.array(v2)
-    return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
-
-def main():
-    with open("embed-output-cpu.json", "r") as f:
-        cpu_data = json.load(f)
-    with open("embed-output-tpu.json", "r") as f:
-        tpu_data = json.load(f)
-
-    output_str = f"{'Text Content (Prefix)':<40} {'Cosine Similarity':<20}\n"
-    output_str += "-" * 60 + "\n"
-
-    for key in cpu_data:
-        v1 = cpu_data[key]
-        v2 = tpu_data.get(key)
-        if v2 is None:
-            output_str += f"{key[:37]+'...':<40} {'Not found in TPU':<20}\n"
-            continue
-        
-        sim = cosine_similarity(v1, v2)
-        output_str += f"{key[:37]+'...':<40} {sim:.10f}\n"
-
-    print(output_str, end="")
-    
-    # Automatically log to file
-    with open("precision_results.log", "a") as f:
-        f.write(f"--- Run at {datetime.datetime.now()} ---\n")
-        f.write(output_str)
-        f.write("\n")
-
-if __name__ == '__main__':
-    main()
-
-```
+* [embed_script.py](file:///usr/local/google/home/aysu/projects/tpu-recipes/inference/ironwood/vLLM/Qwen3-Embedding-8B/embed_script.py): Uses the pooling runner to generate embeddings.
+* [compare_precision.py](file:///usr/local/google/home/aysu/projects/tpu-recipes/inference/ironwood/vLLM/Qwen3-Embedding-8B/compare_precision.py): Calculates the Cosine Similarity between CPU and TPU output tensors.
 
 ## 4. Generate Embeddings and Verify Numerical Parity
 Run the validation suite sequentially:
@@ -209,14 +78,14 @@ Run the validation suite sequentially:
 ```bash
 # Run CPU Baseline
 export VLLM_TARGET_DEVICE="cpu"
-python ~/embed_script.py
+python embed_script.py
 
 # Run TPU Validation
 export VLLM_TARGET_DEVICE="tpu"
-python ~/embed_script.py
+python embed_script.py
 
 # Run Comparison
-python ~/compare_precision.py
+python compare_precision.py
 ```
 
 ## 5. Expected Results
