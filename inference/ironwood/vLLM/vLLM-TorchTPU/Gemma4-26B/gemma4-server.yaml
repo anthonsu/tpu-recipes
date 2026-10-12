@@ -1,3 +1,14 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: hyperdisk-balanced-tpu
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: hyperdisk-balanced
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -9,7 +20,7 @@ spec:
   resources:
     requests:
       storage: 200Gi
-  storageClassName: standard-rwo
+  storageClassName: hyperdisk-balanced-tpu
 ---
 apiVersion: apps/v1
 kind: Deployment

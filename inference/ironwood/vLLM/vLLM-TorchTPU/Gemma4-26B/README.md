@@ -8,8 +8,6 @@ We deploy it on a single **tpu7x-standard-4t** node pool (`2x2x1` topology, 4 TP
 
 The following Gemma 4 model is verified for deployment on TPU with the vLLM TorchTPU backend.
 
-### Verified Models
-
 | Model | Parameters | Min TPUs (Chips) | HuggingFace |
 | :---- | :---- | :---- | :---- |
 | Gemma 4 26B-A4B IT | 26B (4B active) | 4× | [google/gemma-4-26B-A4B-it](https://huggingface.co/google/gemma-4-26B-A4B-it) |
@@ -57,7 +55,7 @@ gcloud container node-pools create ${NODEPOOL_NAME} \
 1. Configure `kubectl` to communicate with your cluster:
 
 ```shell
-gcloud container clusters get-credentials ${CLUSTER_NAME} --location=${ZONE} --project=${PROJECT_ID}
+gcloud container clusters get-credentials ${CLUSTER_NAME} --location=${REGION} --project=${PROJECT_ID}
 ```
 
 2. Create the Namespace `vllm-gemma4` if you want to run it in a isolated namespace (recommended):
@@ -163,10 +161,10 @@ spec:
     - |
       while ! curl -sf http://vllm-gemma4-service:8000/health; do sleep 30 && echo 'Waiting for server...'; done
       apt-get update && apt-get install -y git && \
-      git clone https://github.com/SemiAnalysisAI/InferenceX.git /ubench/inferencex && \
-      cd /ubench/inferencex && \
+      git clone https://github.com/SemiAnalysisAI/InferenceX.git /workspace/inferencex && \
+      cd /workspace/inferencex && \
       git checkout f6c1f5b5d122bc4a62b93c9bd2919dfef68ccbcd && \
-      python3 /ubench/inferencex/utils/bench_serving/benchmark_serving.py \
+      python3 /workspace/inferencex/utils/bench_serving/benchmark_serving.py \
         --backend=vllm \
         --request-rate=inf \
         --percentile-metrics='ttft,tpot,itl,e2el' \
@@ -177,7 +175,7 @@ spec:
         --dataset-name=random \
         --random-input-len=1024 \
         --random-output-len=500 \
-        --random-range-ratio=0.0 \
+        --random-range-ratio=0.8 \
         --num-prompts=2048 \
         --num-warmups=4 \
         --ignore-eos
@@ -230,10 +228,10 @@ spec:
     - |
       while ! curl -sf http://vllm-gemma4-service:8000/health; do sleep 30 && echo 'Waiting for server...'; done
       apt-get update && apt-get install -y git && \
-      git clone https://github.com/SemiAnalysisAI/InferenceX.git /ubench/inferencex && \
-      cd /ubench/inferencex && \
+      git clone https://github.com/SemiAnalysisAI/InferenceX.git /workspace/inferencex && \
+      cd /workspace/inferencex && \
       git checkout f6c1f5b5d122bc4a62b93c9bd2919dfef68ccbcd && \
-      python3 /ubench/inferencex/utils/bench_serving/benchmark_serving.py \
+      python3 /workspace/inferencex/utils/bench_serving/benchmark_serving.py \
         --backend=vllm \
         --request-rate=inf \
         --percentile-metrics='ttft,tpot,itl,e2el' \
@@ -244,7 +242,7 @@ spec:
         --dataset-name=random \
         --random-input-len=1024 \
         --random-output-len=8192 \
-        --random-range-ratio=0.0 \
+        --random-range-ratio=0.8 \
         --num-prompts=128 \
         --num-warmups=2 \
         --ignore-eos
@@ -297,10 +295,10 @@ spec:
     - |
       while ! curl -sf http://vllm-gemma4-service:8000/health; do sleep 30 && echo 'Waiting for server...'; done
       apt-get update && apt-get install -y git && \
-      git clone https://github.com/SemiAnalysisAI/InferenceX.git /ubench/inferencex && \
-      cd /ubench/inferencex && \
+      git clone https://github.com/SemiAnalysisAI/InferenceX.git /workspace/inferencex && \
+      cd /workspace/inferencex && \
       git checkout f6c1f5b5d122bc4a62b93c9bd2919dfef68ccbcd && \
-      python3 /ubench/inferencex/utils/bench_serving/benchmark_serving.py \
+      python3 /workspace/inferencex/utils/bench_serving/benchmark_serving.py \
         --backend=vllm \
         --request-rate=inf \
         --percentile-metrics='ttft,tpot,itl,e2el' \
@@ -311,7 +309,7 @@ spec:
         --dataset-name=random \
         --random-input-len=8192 \
         --random-output-len=1024 \
-        --random-range-ratio=0.0 \
+        --random-range-ratio=0.8 \
         --num-prompts=180 \
         --num-warmups=2 \
         --ignore-eos
@@ -349,8 +347,8 @@ The benchmark client will print a table resembling the following:
 
 ```
 ============ Serving Benchmark Result ============
-Successful requests:                     2048
-Failed requests:                         0
+Successful requests:                     xxx
+Failed requests:                         xxx
 Benchmark duration (s):                  xxx
 Total input tokens:                      xxx
 Total generated tokens:                  xxx
@@ -377,16 +375,6 @@ Median E2EL (ms):                        xxx
 P99 E2EL (ms):                           xxx
 ==================================================
 ```
-
-### Benchmark Results
-
-| Workload (input tokens/output tokens) | Request Throughput (req/s) | Mean TPOT (ms) | Output Token Throughput (tok/s) | Output Token Throughput (tok/s) Per Chip (4 Chips) | Output Token Throughput (tok/s) Per Core (8 TensorCores) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| 1k/500 | 28.80 | 31.61 | 7342.27 tok/s | 1835.57 tok/s/chip | 917.78 tok/s/core |
-| 1k/8k | 1.34 | 12.50 | 4692.24 tok/s | 1173.06 tok/s/chip | 586.53 tok/s/core |
-| 8k/1k | 4.79 | 21.57 | 2641.29 tok/s | 660.32 tok/s/chip | 330.16 tok/s/core |
-
-**Note**: These benchmark results are based on the `InferenceX` client. The development team is continuously improving and optimizing performance; as such, these results are subject to change, and improved or optimized figures may be published in the future.
 
 ---
 
