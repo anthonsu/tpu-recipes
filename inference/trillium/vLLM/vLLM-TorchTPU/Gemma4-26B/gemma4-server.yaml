@@ -1,0 +1,130 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: hyperdisk-balanced-tpu
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: hyperdisk-balanced
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hf-cache-pvc
+  namespace: vllm-gemma4
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: hyperdisk-balanced-tpu
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-gemma4
+  namespace: vllm-gemma4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-gemma4
+  template:
+    metadata:
+      labels:
+        app: vllm-gemma4
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-tpu-accelerator: tpu-v6e-slice
+        cloud.google.com/gke-tpu-topology: 2x4
+      tolerations:
+      - key: "google.com/tpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: vllm-torchtpu
+        # TODO: Update to the public release image when available.
+        image: us-central1-docker.pkg.dev/cloud-ullm-inference-ci-cd/vllm-torchtpu/torchtpu-vllm-prod:latest
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          vllm serve google/gemma-4-26B-A4B-it \
+            --tokenizer=google/gemma-4-26B-A4B-it \
+            --host=0.0.0.0 \
+            --port=8000 \
+            --download-dir=/data \
+            --tensor-parallel-size=8 \
+            --kv-cache-dtype=fp8 \
+            --gpu-memory-utilization=0.9 \
+            --block-size=256 \
+            --max-model-len=9216 \
+            --max-num-seqs=64 \
+            --max-num-batched-tokens=8192 \
+            --async-scheduling \
+            --no-enable-prefix-caching \
+            --limit-mm-per-prompt='{"image": 0, "video": 0, "audio": 0}' \
+            --language-model-only \
+            --hf-overrides='{"architectures": ["Gemma4ForCausalLM"]}'
+        env:
+        - name: HF_HOME
+          value: /data
+        - name: HUGGING_FACE_HUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-secret
+              key: hf_api_token
+        - name: VLLM_ENGINE_READY_TIMEOUT_S
+          value: "6000"
+        - name: VLLM_ATTENTION_BACKEND
+          value: "CUSTOM"
+        - name: VLLM_PLUGINS
+          value: "torchtpu"
+        - name: TPU_PROCESS_ADDRESSES
+          value: ""
+        - name: VLLM_XLA_CACHE_PATH
+          value: "/tmp/vllm_xla_cache"
+        - name: VLLM_TORCH_COMPILE_CACHE_DIR
+          value: "/data/torch_compile_cache"
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            google.com/tpu: "8"
+          requests:
+            google.com/tpu: "8"
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        volumeMounts:
+        - name: hf-cache
+          mountPath: /data
+        - name: dshm
+          mountPath: /dev/shm
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      - name: hf-cache
+        persistentVolumeClaim:
+          claimName: hf-cache-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-gemma4-service
+  namespace: vllm-gemma4
+spec:
+  selector:
+    app: vllm-gemma4
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8000
+    targetPort: 8000
