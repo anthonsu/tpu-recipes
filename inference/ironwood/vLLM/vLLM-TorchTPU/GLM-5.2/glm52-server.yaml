@@ -49,7 +49,7 @@ spec:
             ray start --head --port=6379
 
             # Wait until both hosts (2 nodes / 8 chips / 16 TensorCores) have joined the Ray cluster.
-            until ray status 2>/dev/null | grep -q "16.0 TPU"; do
+            until ray status 2>/dev/null | grep -q "8.0 TPU"; do
               echo "Waiting for all TPU hosts to join the Ray cluster..."
               sleep 10
             done

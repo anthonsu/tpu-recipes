@@ -83,7 +83,7 @@ kubectl create secret generic hf-secret \
 Apply the vLLM server manifest using the provided [glm52-server.yaml](./glm52-server.yaml) file in this directory:
 
 ```shell
-cd tpu-recipes/inference/ironwood/vLLM/vLLM-TorchTPU/GLM-5.2
+cd inference/ironwood/vLLM/vLLM-TorchTPU/GLM-5.2
 kubectl apply -f glm52-server.yaml
 ```
 
