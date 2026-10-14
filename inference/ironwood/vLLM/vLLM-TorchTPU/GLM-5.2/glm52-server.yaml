@@ -48,8 +48,8 @@ spec:
             # Start the Ray head node on the leader (LWS_WORKER_INDEX=0).
             ray start --head --port=6379
 
-            # Wait until both hosts (2 nodes / 8 chips / 16 TensorCores) have joined the Ray cluster.
-            until ray status 2>/dev/null | grep -q "8.0 TPU"; do
+            # Wait until both hosts (leader + worker) have joined the Ray cluster.
+            until [ "$(python3 -c 'import ray; ray.init(address="auto", logging_level="ERROR"); print(sum(n["Alive"] for n in ray.nodes()))' 2>/dev/null)" = "2" ]; do
               echo "Waiting for all TPU hosts to join the Ray cluster..."
               sleep 10
             done
